@@ -92,7 +92,7 @@ void DHT22::measureTimings(){
   }
 }
 
-uint8_t DHT22::readSensor(){
+uint16_t DHT22::readSensor(){
   //dht22 sampling rate ~0.5Hz
   if(!_firstStart && (millis()-_timer) < 2100){
     return OK;
@@ -108,7 +108,7 @@ uint8_t DHT22::readSensor(){
   //Level HIGH and wait for sensor
   digitalWrite(_pinData,HIGH);
   pinMode(_pinData,INPUT);
-  int32_t t = pulseIn(_pinData, HIGH, 200);
+  int32_t t = pulseIn(_pinData, HIGH, 250);
   if (t==0) return ERR_TIMING_80;
 
   _rawData = 0;

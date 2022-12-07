@@ -2,7 +2,7 @@
 //define where pin data is 
 #define data SDA
 
-DHT22 dht22(data);
+DHT22 dht22(data); 
  
 void setup() {
   Serial.begin(115200); //1bit=10µs
@@ -10,7 +10,7 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(dht22.debug());
+  Serial.println(dht22.debug()); //optionnal
 
   float t = dht22.getTemperature();
   float h = dht22.getHumidity();

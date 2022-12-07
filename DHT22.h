@@ -62,7 +62,7 @@ class DHT22{
     *@brief read the 40bits sensor data
     *@return 0 if no error, num of error instead
     */
-    uint8_t readSensor();
+    uint16_t readSensor();
 
     /** @brief compute checksum of h & t data
      * @return true if checksum==crc**/
