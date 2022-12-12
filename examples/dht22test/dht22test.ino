@@ -1,5 +1,5 @@
 #include <DHT22.h>
-//define where pin data is 
+//define pin data
 #define data SDA
 
 DHT22 dht22(data); 
