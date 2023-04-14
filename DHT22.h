@@ -50,7 +50,7 @@ class DHT22{
     
     public:
     //dht22 sampling rate ~0.5Hz
-    static const uint cSamplingTime = 2100; // ms
+    static const int cSamplingTime = 2100; // ms
     
     enum error{
       OK = 0,
