@@ -1,7 +1,6 @@
 #include "Arduino.h"
 #include "DHT22.h"
 
-
 uint64_t DHT22::getRawData(){
   readSensor();
   return _rawData;
