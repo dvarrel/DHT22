@@ -28,46 +28,54 @@ float DHT22::getTemperature(){
   else return _t16bits/10.0;
 }
 
-int DHT22::measureTimings(){
+void DHT22::measureTimings(){
   //dht22 sampling rate ~0.5Hz
-
+  if(!_firstStart && (millis()-_timer) < 2100){
+    return;
+  }
+  _timer = millis();
+  _firstStart=false;
+  
   _timingBit0 = 0;
   _timingBit1 = 0;
-  
-  _startConversion(); // Send start request
-  
-  SCOPE_HIGH ///////////////////
+  // sending START : Level LOW for at least 1ms
+  pinMode(_pinData,OUTPUT);
+  digitalWrite(_pinData,LOW);// specs 1-10ms mini
+  delay(2);
 
- // sensor-> MCU
+  //Level HIGH and wait for sensor
+  digitalWrite(_pinData,HIGH);
+  pinMode(_pinData,INPUT);
+  
+  // sensor-> MCU
   uint32_t t = micros();
   uint32_t m = 0;
   while(digitalRead(_pinData)==1) {// wait for Level LOW specs 20-40µs
-    if ( (micros()-t) > 60) return 1;    
+    if ( (micros()-t) > 60) return;    
   }
-
   t = micros();
   while(digitalRead(_pinData)==0) {// Level LOW 80µs
     m = micros()-t;
-    if (m > 100) return 2;    
+    if ( m > 100) return;    
   }
   _timing80L = m;
   t = micros();
   while(digitalRead(_pinData)==1) {// Level HIGH 80µs
     m = micros()-t;
-    if (m > 100) return 3;    
+    if ( m > 100) return;    
   }
   _timing80H = m;
   t = micros();
   while(digitalRead(_pinData)==0){//specs Level LOW 50µ$
     m = micros()-t;
-    if (m > 60) return 4;    
+    if (m > 60) return;    
   }
   _timing50 = m;
   t = micros();
   while(_timingBit0==0 || _timingBit1==0){
     while(digitalRead(_pinData)==1){//specs Level HIGH 26-28µs for "0" 70µs for "1"
       m = micros()-t;
-      if (m > 100) return 5; 
+      if (m > 100) return; 
     }
     if (m > 40){
       _timingBit1 = m;
@@ -78,58 +86,44 @@ int DHT22::measureTimings(){
     t = micros();
     while(digitalRead(_pinData)==0){//wait for new bit
       m = micros()-t;
-      if (m > 100) return 6; 
+      if (m > 100) return; 
     }
     t = micros();
   }
-  // Measuring successful, and a conversion will be in progress
-  return 0;   
 }
 
-int DHT22::readSensor(){
-  //dht22 sampling rate ~0.5Hz 
+uint16_t DHT22::readSensor(){
+  //dht22 sampling rate ~0.5Hz
+  if(!_firstStart && (millis()-_timer) < 2100){
+    return OK;
+  }
+  _timer = millis();
+  _firstStart = false;
   
-  // This is for backward compatibility with old library concept 
-  // without begin()
-  if(!_initialized)
-	begin();
-	
-  // Try to send start request
-  if(!_startConversion()){
-  	 if(_dataAvailable){
-    // We have already data in buffer, continue using it ...
-		return _error = OK;
-	 }
-	 else {
-    // Wait
-		return _error = BUSY;
-		}
-  } 
-  
-  // specs: acknowledge 80µs LOW / 80µs HIGH,
-  // then start of 1st bit within apprx. 200µs from now
-  int32_t t = pulseIn(_pinData, HIGH, 200);
-  if (t==0) {
-	return(_error = ERR_TIMING_80);
-	}
-	
+  // sending START : Level LOW for at least 1ms
+  pinMode(_pinData,OUTPUT);
+  digitalWrite(_pinData,LOW);// specs 1-10ms mini
+  delay(2);
+
+  //Level HIGH and wait for sensor
+  digitalWrite(_pinData,HIGH);
+  pinMode(_pinData,INPUT);
+  int32_t t = pulseIn(_pinData, HIGH, 250);
+  if (t==0) return ERR_TIMING_80;
+
   _rawData = 0;
   //reading 40 bits
   for (uint8_t i=0;i<40;i++) {
     t = micros();
     while(digitalRead(_pinData)==0){//specs Level LOW 50µ$
-      if ( (micros()-t) > _timing50+T) {
-        return(_error = ERR_TIMING_50);
-      }
+      if ( (micros()-t) > _timing50+T) return ERR_TIMING_50 ;
     }
     delayMicroseconds(40);
     if (digitalRead(_pinData)==1) _rawData++;//specs Level HIGH 26-28µs for "0" 70µs for "1"
     if (i!=39) _rawData <<=1;
     t = micros();
     while(digitalRead(_pinData)==1){//if "1" wait for next 50µs Level LOW
-      if ( (micros()-t) > _timingBit1) {
-        return(_error = ERR_TIMING_BITS);
-      }
+      if ( (micros()-t) > _timingBit1) return ERR_TIMING_BITS ;
     }
   }
   delayMicroseconds(10);
@@ -138,15 +132,13 @@ int DHT22::readSensor(){
   _h16bits = _rawData>>24;
   _t16bits = _rawData>>8;
   _crc8bits = _rawData;
-  
-  _dataAvailable = true;
-  return(_error = (computeCRC()) ? OK : ERR_CRC);
+  return (computeCRC()) ? OK : ERR_CRC;
 }
 
 String DHT22::debug(){
-  String d = "### DEBUG ###\nlook at datasheet for timing specs\n";
+  String d = "### DEDUG ###\nlook at datasheet for timing specs\n";
   measureTimings();
-  SCOPE_LOW //////////////////////////
+  
   d +="t_80L\tt_80H\tt_50\tt_Bit0\tt_Bit1\n";
   d += String(_timing80L) +"\t";
   d += String(_timing80H) +"\t";
@@ -154,7 +146,7 @@ String DHT22::debug(){
   d += String(_timingBit0) +"\t";
   d += String(_timingBit1) +"\n";
 
-  delay(cSamplingTime + 100); // f is 0.5Hz
+  delay(2200); // f is 0.5Hz
   uint8_t err = readSensor();
   d += "error : "+String(err)+"\n";  
 
@@ -163,7 +155,7 @@ String DHT22::debug(){
   d += String(getHumidity(),1) +"\t";
   d += String(getTemperature(),1) +"\t";
   if (err != ERR_CRC) d+="TRUE"; else d+="FALSE";
-  d+="\n### DEBUG ###";
+  d+="\n### DEDUG ###";
   return d;
 }
 
@@ -171,92 +163,3 @@ bool DHT22::computeCRC(){
   uint8_t sum = highByte(_h16bits) + lowByte(_h16bits) + highByte(_t16bits) + lowByte(_t16bits) ; 
   return (sum == _crc8bits);
 }
-
-uint16_t DHT22::getError(){
-	return _error;
-}
-
-// As begin() shall not block by design, it needs to be called repetitive
-// until a 'OK' or an 'ERR_xx' is returned.
-// Notice: Error codes are sent as negative values!
-int DHT22::begin(){
-  
-  SCOPE_INIT ////////////////////// 
-
-  int rc;
-  if(_powerOn){
-    _powerOn = _initialized = false;
-    // assume a running conversion after power on
-    _timer = millis();
-    rc = POWER_ON;
-  }
-  else {
-    if(conversionInProgress()){
-      rc = BUSY;
-    }
-    else {
-      // Reads no data, but requests a new conversion
-      rc = measureTimings(); 
-      SCOPE_LOW //////////////////////  
-      if(rc > 0)
-        rc += ERR_MEASURE; // Add offset
-      else
-        // Sane state
-        _recoveryInProgress = false;
-        _initialized = true;
-    }
-  }
-  
-  rc = rc * -1; // Make negative RC
-  return rc;
-}
-
-int DHT22::recover(){
-
-  if(!_recoveryInProgress){
-    _recoveryInProgress = true;
-    _powerOn = true;
-    _dataAvailable = false;
-  }
-  
-  int rc = begin();
-  if((rc * -1) >= ERR_MEASURE){
-    // Error in measuring is typically by no, bad or wrong sensor.
-    // Thus, recovery trial failed
-    _recoveryInProgress = false;
-  }
-  return rc;
-}
-
-
-bool DHT22::_startConversion(){
-  
-  if(conversionInProgress())
-    // No new start while a conversion is still in progress
-    return false;
-  
-  _timer = millis();
-  // sending START : Level LOW for at least 1ms
-  pinMode(_pinData,OUTPUT);
-  digitalWrite(_pinData,LOW);// specs 1-10ms mini
-  delay(2);
-  
-  //Level HIGH and wait for sensor
-  digitalWrite(_pinData,HIGH);
-  
-  pinMode(_pinData, INPUT_PULLUP);
-  //pinMode(_pinData, INPUT);
-  
-  // Ensure input is driven LOW before searching HIGH pulse!
-  //while(digitalRead(_pinData)) {;} // FIX may lock up !!!
-  
-  return true;
-}
-
-bool DHT22::conversionInProgress(){
-	if(_powerOn || (millis()-_timer) < cSamplingTime)
-		return true;
-	else
-		return false;
-}
-
