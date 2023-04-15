@@ -41,16 +41,15 @@ class DHT22{
     uint8_t _timingBit1;
     bool _initialized = false;
     bool _powerOn = true;
-	bool _dataAvailable = false;
-	bool _recoveryInProgress = false;
-	uint16_t _error;
+    bool _dataAvailable = false;
+    bool _recoveryInProgress = false;
+    uint16_t _error;
 	
     const uint8_t T=30;
-
     
     public:
     //dht22 sampling rate ~0.5Hz
-    static const uint cSamplingTime = 2100; // ms
+    static const uint16_t cSamplingTime = 2100; // ms
     
     enum error{
       OK = 0,
@@ -92,8 +91,8 @@ class DHT22{
     /** @return String with timings, 40bits, and calculate values**/
     String debug();
 
-	/** @return Returncode from last readSensor() request **/
-	uint16_t getError();
+    /** @return Returncode from last readSensor() request **/
+    uint16_t getError();
 	
 	 /**
     *@brief read the 40bits sensor data
