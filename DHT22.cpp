@@ -17,7 +17,7 @@ String DHT22::getRawStrData(){
 
 float DHT22::getHumidity(){
   if (readSensor() != OK) return -1;
-  else return (_rawData>>24)/10.0;
+  else return _h16bits/10.0;
 }
 
 
@@ -27,9 +27,13 @@ float DHT22::getTemperature(){
   else return _t16bits/10.0;
 }
 
+uint8_t DHT22::getLastError(){
+  return _lastError;
+}
+
 void DHT22::measureTimings(){
   //dht22 sampling rate ~0.5Hz
-  if(!_firstStart && (millis()-_timer) < 2100){
+  if(!_firstStart && (millis()-_timer) < cSamplingTime){
     return;
   }
   _timer = millis();
@@ -93,7 +97,7 @@ void DHT22::measureTimings(){
 
 uint16_t DHT22::readSensor(){
   //dht22 sampling rate ~0.5Hz
-  if(!_firstStart && (millis()-_timer) < 2100){
+  if(!_firstStart && (millis()-_timer) < cSamplingTime){
     return OK;
   }
   _timer = millis();
@@ -108,21 +112,21 @@ uint16_t DHT22::readSensor(){
   digitalWrite(_pinData,HIGH);
   pinMode(_pinData,INPUT);
   int32_t t = pulseIn(_pinData, HIGH, 250);
-  if (t==0) return ERR_TIMING_80;
+  if (t==0) return (_lastError = ERR_TIMING_80);
 
   _rawData = 0;
   //reading 40 bits
   for (uint8_t i=0;i<40;i++) {
     t = micros();
     while(digitalRead(_pinData)==0){//specs Level LOW 50µ$
-      if ( (micros()-t) > _timing50+T) return ERR_TIMING_50 ;
+      if ( (micros()-t) > _timing50+T) return (_lastError = ERR_TIMING_50) ;
     }
     delayMicroseconds(40);
     if (digitalRead(_pinData)==1) _rawData++;//specs Level HIGH 26-28µs for "0" 70µs for "1"
     if (i!=39) _rawData <<=1;
     t = micros();
     while(digitalRead(_pinData)==1){//if "1" wait for next 50µs Level LOW
-      if ( (micros()-t) > _timingBit1) return ERR_TIMING_BITS ;
+      if ( (micros()-t) > _timingBit1) return (_lastError = ERR_TIMING_BITS) ;
     }
   }
   delayMicroseconds(10);
@@ -131,7 +135,8 @@ uint16_t DHT22::readSensor(){
   _h16bits = _rawData>>24;
   _t16bits = _rawData>>8;
   _crc8bits = _rawData;
-  return (computeCRC()) ? OK : ERR_CRC;
+  if (computeCRC()) return (_lastError = OK);
+  else return (_lastError = ERR_CRC);
 }
 
 String DHT22::debug(){
@@ -145,7 +150,7 @@ String DHT22::debug(){
   d += String(_timingBit0) +"\t";
   d += String(_timingBit1) +"\n";
 
-  delay(2200); // f is 0.5Hz
+  delay(cSamplingTime); // f is 0.5Hz
   uint8_t err = readSensor();
   d += "error : "+String(err)+"\n";  
 

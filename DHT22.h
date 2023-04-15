@@ -19,14 +19,15 @@ class DHT22{
     uint16_t _h16bits;
     uint16_t _t16bits;
     uint8_t _crc8bits;
-    uint8_t _timing80L;
-    uint8_t _timing80H;
-    uint8_t _timing50;
-    uint8_t _timingBit0;
-    uint8_t _timingBit1;
+    uint8_t _timing80L = 80;
+    uint8_t _timing80H = 80;
+    uint8_t _timing50 = 50;
+    uint8_t _timingBit0 = 27; //specs for AM2303
+    uint8_t _timingBit1 = 70; //specs for AM2303
     bool _firstStart=true;
+    uint8_t _lastError;
 
-    const uint8_t T=30;
+    const uint8_t T = 30;
     enum error{
       OK,
       ERR_TIMING_80,
@@ -36,9 +37,13 @@ class DHT22{
     };
 
   public:
+    //dht22 sampling rate ~0.5Hz
+    static const uint16_t cSamplingTime = 2100; // ms
+
     DHT22(uint8_t pinData){
       _pinData = pinData;
     };
+
     /** @return 40bits of data sensor : h16 + t16 + crc8**/
     uint64_t getRawData();
 
@@ -50,6 +55,9 @@ class DHT22{
     
     /** @return temperature in °C **/
     float getTemperature();
+
+    /** @return code from last readSensor() request **/
+	  uint8_t getLastError();
 
     /** @return String with timings, 40bits, and calculate values**/
     String debug();
