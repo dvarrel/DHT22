@@ -1,8 +1,11 @@
 # DHT22
- Arduino library for interface with DHT22 sensor 
+ Arduino library for interface with DHT22 (AM2302) sensor 
  Without use of pointers.
 
 [datasheet](extras/DHT22-datasheet.pdf)
+
+sample oscillogram :
+![oscillogram](extras/dht22_oscilloscope.png)
 
 sample module :
 ![module](extras/dht22.webp)
