@@ -28,15 +28,17 @@ class DHT22{
     uint8_t _lastError;
 
     const uint8_t T = 30;
-    enum error{
-      OK,
-      ERR_TIMING_80,
-      ERR_TIMING_50,
-      ERR_TIMING_BITS,
-      ERR_CRC
-    };
+    
 
   public:
+    enum error{
+        OK,
+        ERR_TIMING_80,
+        ERR_TIMING_50,
+        ERR_TIMING_BITS,
+        ERR_CRC
+      };
+
     //dht22 sampling rate ~0.5Hz
     static const uint16_t cSamplingTime = 2100; // ms
 
@@ -70,7 +72,7 @@ class DHT22{
     *@brief read the 40bits sensor data
     *@return 0 if no error, num of error instead
     */
-    uint16_t readSensor();
+    uint8_t readSensor();
 
     /** @brief compute checksum of h & t data
      * @return true if checksum==crc**/

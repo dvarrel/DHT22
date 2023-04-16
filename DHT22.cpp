@@ -95,7 +95,7 @@ void DHT22::measureTimings(){
   }
 }
 
-uint16_t DHT22::readSensor(){
+uint8_t DHT22::readSensor(){
   //dht22 sampling rate ~0.5Hz
   if(!_firstStart && (millis()-_timer) < cSamplingTime){
     return OK;
