@@ -15,7 +15,8 @@ void loop() {
   float t = dht22.getTemperature();
   float h = dht22.getHumidity();
 
-  Serial.println(dht22.getLastError());
+  if (dht22.getLastError() != dht22.OK) 
+    Serial.println(dht22.getLastError());
 
   Serial.print("h=");Serial.print(h,1);Serial.print("\t");
   Serial.print("t=");Serial.println(t,1);
