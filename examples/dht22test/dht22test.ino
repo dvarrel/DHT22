@@ -1,8 +1,8 @@
 #include <DHT22.h>
 //define pin data
-#define data SDA
+#define pinDATA SDA
 
-DHT22 dht22(data); 
+DHT22 dht22(pinDATA); 
  
 void setup() {
   Serial.begin(115200); //1bit=10µs
@@ -19,5 +19,5 @@ void loop() {
 
   Serial.print("h=");Serial.print(h,1);Serial.print("\t");
   Serial.print("t=");Serial.println(t,1);
-  delay(5000);
+  delay(1000);
 }
