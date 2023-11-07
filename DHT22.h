@@ -33,10 +33,10 @@ class DHT22{
     uint8_t _timingBit0 = 27; //specs for AM2303
     uint8_t _timingBit1 = 70; //specs for AM2303
     bool _firstStart=true;
-    uint8_t _lastError;
+    error _lastError;
 
     const uint8_t T = 30;
-    const uint16_t cSamplingTime = 2100; // ms, dht22 sampling rate ~0.5Hz
+    const uint16_t cSamplingTime = 2100; // ms : dht22 sampling rate ~0.5Hz
 
   public:
     DHT22(uint8_t pinData){

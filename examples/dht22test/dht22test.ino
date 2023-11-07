@@ -10,15 +10,17 @@ void setup() {
 }
 
 void loop() {
-  //Serial.println(dht22.debug()); //optionnal
+  Serial.println(dht22.debug()); //optionnal
 
   float t = dht22.getTemperature();
   float h = dht22.getHumidity();
 
-  if (dht22.getLastError() != dht22.OK) 
+  if (dht22.getLastError() != dht22.OK) {
+    Serial.print("last error :");
     Serial.println(dht22.getLastError());
+  }
 
   Serial.print("h=");Serial.print(h,1);Serial.print("\t");
   Serial.print("t=");Serial.println(t,1);
-  delay(1000);
+  delay(2000); //Collecting period should be : >1.7 second
 }

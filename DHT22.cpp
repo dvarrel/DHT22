@@ -140,7 +140,7 @@ uint8_t DHT22::readSensor(){
 }
 
 String DHT22::debug(){
-  String d = "### DEDUG ###\nlook at datasheet for timing specs\n";
+  String d = "### BEGIN DEDUG ###\nlook at datasheet for timing specs\n";
   measureTimings();
   
   d +="t_80L\tt_80H\tt_50\tt_Bit0\tt_Bit1\n";
@@ -159,7 +159,7 @@ String DHT22::debug(){
   d += String(getHumidity(),1) +"\t";
   d += String(getTemperature(),1) +"\t";
   if (err != ERR_CRC) d+="TRUE"; else d+="FALSE";
-  d+="\n### DEDUG ###";
+  d+="\n### END DEDUG ###";
   return d;
 }
 
