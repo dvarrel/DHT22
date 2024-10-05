@@ -3,8 +3,8 @@
  * @brief Arduino library for interface with DHT22 sensor 
  * @n without use of pointers.
  * @author dvarrel
- * @version  1.0.4
- * @date  2023-04-15
+ * @version  1.0.7
+ * @date  2024-10-05
  * @url https://github.com/dvarrel/DHT22.git
  */
 #ifndef _DHT22_H
